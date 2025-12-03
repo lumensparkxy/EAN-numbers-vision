@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  # MongoDB for local development
+  mongodb:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: ean-extraction-dev
+
+  # Azurite for local Azure Storage emulation
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    ports:
+      - "10000:10000"  # Blob
+      - "10001:10001"  # Queue
+      - "10002:10002"  # Table
+    volumes:
+      - azurite_data:/data
+
+  # Preprocessing worker
+  preprocess-worker:
+    build: .
+    command: python -m workers.preprocess.main
+    depends_on:
+      - mongodb
+      - azurite
+    environment:
+      ENVIRONMENT: dev
+      MONGODB_URI: mongodb://mongodb:27017
+      MONGODB_DATABASE: ean-extraction-dev
+      AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1"
+      AZURE_STORAGE_CONTAINER: product-images
+      LOG_FORMAT: text
+    restart: unless-stopped
+
+  # Primary decode worker
+  decode-primary-worker:
+    build: .
+    command: python -m workers.decode_primary.main
+    depends_on:
+      - mongodb
+      - azurite
+    environment:
+      ENVIRONMENT: dev
+      MONGODB_URI: mongodb://mongodb:27017
+      MONGODB_DATABASE: ean-extraction-dev
+      AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1"
+      AZURE_STORAGE_CONTAINER: product-images
+      LOG_FORMAT: text
+    restart: unless-stopped
+
+  # Fallback decode worker (Gemini)
+  decode-fallback-worker:
+    build: .
+    command: python -m workers.decode_fallback.main
+    depends_on:
+      - mongodb
+      - azurite
+    environment:
+      ENVIRONMENT: dev
+      MONGODB_URI: mongodb://mongodb:27017
+      MONGODB_DATABASE: ean-extraction-dev
+      AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1"
+      AZURE_STORAGE_CONTAINER: product-images
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      LOG_FORMAT: text
+    restart: unless-stopped
+
+  # Job dispatcher
+  dispatcher:
+    build: .
+    command: python -m workers.dispatcher.main
+    depends_on:
+      - mongodb
+    environment:
+      ENVIRONMENT: dev
+      MONGODB_URI: mongodb://mongodb:27017
+      MONGODB_DATABASE: ean-extraction-dev
+      LOG_FORMAT: text
+    restart: unless-stopped
+
+  # Manual review UI
+  review-ui:
+    build: .
+    command: uvicorn tools.manual_review_ui.app:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongodb
+      - azurite
+    environment:
+      ENVIRONMENT: dev
+      MONGODB_URI: mongodb://mongodb:27017
+      MONGODB_DATABASE: ean-extraction-dev
+      AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1"
+      AZURE_STORAGE_CONTAINER: product-images
+      LOG_FORMAT: text
+    volumes:
+      - ./src:/app/src
+      - ./tools:/app/tools
+
+volumes:
+  mongodb_data:
+  azurite_data:

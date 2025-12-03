@@ -1,0 +1,3 @@
+"""
+Find detection CLI tool.
+"""
