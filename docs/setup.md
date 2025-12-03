@@ -4,7 +4,6 @@
 
 - Python 3.11 or higher
 - Poetry (package manager)
-- Docker & Docker Compose (for local development)
 - Azure CLI (for deployment)
 - MongoDB Atlas account or local MongoDB
 
@@ -32,12 +31,12 @@ Create a `.env` file in the project root:
 # Environment
 ENVIRONMENT=dev
 
-# Azure Storage (use Azurite for local development)
-AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;
+# Azure Storage
+AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=https;AccountName=...;AccountKey=...;EndpointSuffix=core.windows.net
 AZURE_STORAGE_CONTAINER=images
 
 # MongoDB
-MONGODB_URI=mongodb://localhost:27017
+MONGODB_URI=mongodb+srv://...
 MONGODB_DATABASE=ean_extraction
 
 # Gemini AI (required for fallback decoding)
@@ -49,29 +48,19 @@ LOG_LEVEL=INFO
 LOG_FORMAT=console
 ```
 
-### 3. Start Local Services with Docker
-
-```bash
-# Start MongoDB and Azurite (Azure Storage emulator)
-docker-compose up -d mongodb azurite
-
-# Verify services are running
-docker-compose ps
-```
-
-### 4. Initialize Database Indexes
+### 3. Initialize Database Indexes
 
 ```bash
 poetry run python -m src.db.init_indexes
 ```
 
-### 5. Create Storage Container
+### 4. Create Storage Container
 
 ```bash
-# Using Azure CLI with Azurite
+# Using Azure CLI
 az storage container create \
   --name images \
-  --connection-string "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;"
+  --connection-string "YOUR_CONNECTION_STRING"
 ```
 
 ## Environment Variables Reference
@@ -114,20 +103,7 @@ az storage container create \
 
 ## Running the Full Stack
 
-### Option 1: Docker Compose (Recommended)
-
-```bash
-# Start all services
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-
-# Stop all services
-docker-compose down
-```
-
-### Option 2: Run Workers Individually
+### Run Workers Individually
 
 ```bash
 # Terminal 1: Dispatcher
@@ -171,22 +147,10 @@ poetry run mypy src workers tools
 
 ```bash
 # Check if MongoDB is running
-docker-compose ps mongodb
+# (Command depends on your installation, e.g., brew services list)
 
 # Check MongoDB logs
-docker-compose logs mongodb
-```
-
-### Azurite (Azure Storage Emulator) Issues
-
-```bash
-# Check if Azurite is running
-docker-compose ps azurite
-
-# Verify container exists
-az storage container list \
-  --connection-string "..." \
-  --output table
+# (Location depends on your installation)
 ```
 
 ### ZBar Library Not Found

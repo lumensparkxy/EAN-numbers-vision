@@ -10,11 +10,15 @@ import pytest
 @pytest.fixture(autouse=True)
 def set_test_env():
     """Set environment variables for testing."""
-    os.environ.setdefault("ENVIRONMENT", "dev")
-    os.environ.setdefault("MONGODB_URI", "mongodb://localhost:27017")
-    os.environ.setdefault("MONGODB_DATABASE", "ean-extraction-test")
-    os.environ.setdefault("AZURE_STORAGE_CONNECTION_STRING", "")
-    os.environ.setdefault("GEMINI_API_KEY", "")
+    # Force safe values for testing to prevent accidental usage of real cloud resources
+    os.environ["ENVIRONMENT"] = "dev"
+    os.environ["MONGODB_URI"] = "mongodb://localhost:27017"
+    os.environ["MONGODB_DATABASE"] = "ean-extraction-test"
+    # Use a dummy connection string that is syntactically valid but won't connect to real storage
+    os.environ["AZURE_STORAGE_CONNECTION_STRING"] = (
+        "DefaultEndpointsProtocol=https;AccountName=test;AccountKey=test;EndpointSuffix=core.windows.net"
+    )
+    os.environ["GEMINI_API_KEY"] = "dummy-key"
     yield
 
 

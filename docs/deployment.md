@@ -120,36 +120,6 @@ The deployment automatically configures lifecycle policies for blob cleanup:
 
 ---
 
-## Docker Deployment
-
-### Build Docker Image
-
-```bash
-docker build -t ean-extraction:latest .
-```
-
-### Run with Docker Compose
-
-For local development or simple deployments:
-
-```bash
-docker-compose up -d
-```
-
-### Docker Compose Services
-
-| Service | Port | Description |
-|---------|------|-------------|
-| `mongodb` | 27017 | MongoDB database |
-| `azurite` | 10000-10002 | Azure Storage emulator |
-| `preprocess-worker` | - | Preprocessing worker |
-| `decode-primary-worker` | - | Primary decode worker |
-| `decode-fallback-worker` | - | Fallback decode worker |
-| `dispatcher` | - | Pipeline orchestrator |
-| `review-ui` | 8000 | Manual review UI |
-
----
-
 ## Azure Container Apps (Production)
 
 For production deployments, use Azure Container Apps:
@@ -290,8 +260,8 @@ If using MongoDB Atlas:
 
 **Workers not processing:**
 ```bash
-# Check worker logs
-docker-compose logs preprocess-worker
+# Check worker logs (if running as systemd service or similar)
+# tail -f /var/log/ean-extraction/worker.log
 
 # Verify MongoDB connection
 poetry run python -c "from src.db import get_database; print(get_database().list_collection_names())"
