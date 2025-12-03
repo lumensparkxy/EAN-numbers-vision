@@ -13,14 +13,12 @@ from typing import Any
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from src.config import get_settings
-from src.db import get_database, ImageRepository, DetectionRepository, ProductRepository
+from src.db import DetectionRepository, ImageRepository, ProductRepository, get_database
 from src.models import ImageStatus
 from src.storage import get_blob_client
-
 
 app = FastAPI(
     title="EAN Extraction - Manual Review",
@@ -156,16 +154,18 @@ async def get_image_detail(image_id: str) -> ImageDetail:
             if product:
                 product_name = product.name
 
-        detection_infos.append(DetectionInfo(
-            id=str(det.id) if det.id else "",
-            code=det.code,
-            symbology=det.symbology.value,
-            source=det.source.value,
-            confidence=det.gemini_confidence,
-            checksum_valid=det.checksum_valid,
-            product_found=det.product_found,
-            product_name=product_name,
-        ))
+        detection_infos.append(
+            DetectionInfo(
+                id=str(det.id) if det.id else "",
+                code=det.code,
+                symbology=det.symbology.value,
+                source=det.source.value,
+                confidence=det.gemini_confidence,
+                checksum_valid=det.checksum_valid,
+                product_found=det.product_found,
+                product_name=product_name,
+            )
+        )
 
     return ImageDetail(
         image_id=image.image_id,
@@ -412,7 +412,7 @@ def get_review_html() -> str:
             <h1>🔍 EAN Extraction - Manual Review</h1>
         </div>
     </header>
-    
+
     <div class="container">
         <div class="stats" id="stats">
             <div class="stat-card">
@@ -432,12 +432,12 @@ def get_review_html() -> str:
                 <div class="stat-label">Success Rate</div>
             </div>
         </div>
-        
+
         <div class="review-section">
             <div class="image-list" id="image-list">
                 <div class="loading">Loading images...</div>
             </div>
-            
+
             <div class="review-panel" id="review-panel">
                 <div class="empty-state">
                     <h3>Select an image to review</h3>
@@ -446,11 +446,11 @@ def get_review_html() -> str:
             </div>
         </div>
     </div>
-    
+
     <script>
         let currentImageId = null;
         let selectedDetectionId = null;
-        
+
         async function loadStats() {
             try {
                 const res = await fetch('/api/stats');
@@ -463,18 +463,18 @@ def get_review_html() -> str:
                 console.error('Failed to load stats:', e);
             }
         }
-        
+
         async function loadImages() {
             try {
                 const res = await fetch('/api/images/review');
                 const images = await res.json();
                 const list = document.getElementById('image-list');
-                
+
                 if (images.length === 0) {
                     list.innerHTML = '<div class="empty-state"><p>No images pending review</p></div>';
                     return;
                 }
-                
+
                 list.innerHTML = images.map(img => `
                     <div class="image-item" onclick="selectImage('${img.image_id}')" id="item-${img.image_id}">
                         <div class="image-item-id">${img.external_id || img.image_id.substring(0, 8)}</div>
@@ -488,19 +488,19 @@ def get_review_html() -> str:
                 document.getElementById('image-list').innerHTML = '<div class="empty-state"><p>Error loading images</p></div>';
             }
         }
-        
+
         async function selectImage(imageId) {
             currentImageId = imageId;
             selectedDetectionId = null;
-            
+
             // Update list selection
             document.querySelectorAll('.image-item').forEach(el => el.classList.remove('active'));
             document.getElementById('item-' + imageId)?.classList.add('active');
-            
+
             try {
                 const res = await fetch(`/api/images/${imageId}`);
                 const image = await res.json();
-                
+
                 const panel = document.getElementById('review-panel');
                 panel.innerHTML = `
                     <img src="${image.image_url}" alt="Product image">
@@ -534,29 +534,29 @@ def get_review_html() -> str:
                 console.error('Failed to load image:', e);
             }
         }
-        
+
         function selectDetection(detectionId) {
             selectedDetectionId = detectionId;
             document.querySelectorAll('.detection').forEach(el => el.classList.remove('selected'));
             document.getElementById('det-' + detectionId)?.classList.add('selected');
             document.getElementById('btn-confirm').disabled = false;
         }
-        
+
         async function confirmSelection() {
             if (!currentImageId || !selectedDetectionId) return;
             await submitDecision('choose', selectedDetectionId);
         }
-        
+
         async function markNoBarcode() {
             if (!currentImageId) return;
             await submitDecision('no_barcode', null);
         }
-        
+
         async function skipImage() {
             if (!currentImageId) return;
             await submitDecision('skip', null);
         }
-        
+
         async function submitDecision(action, detectionId) {
             try {
                 const res = await fetch(`/api/images/${currentImageId}/resolve`, {
@@ -568,7 +568,7 @@ def get_review_html() -> str:
                         reviewer: 'web_ui'
                     })
                 });
-                
+
                 if (res.ok) {
                     loadImages();
                     loadStats();
@@ -584,11 +584,11 @@ def get_review_html() -> str:
                 alert('Failed to submit decision');
             }
         }
-        
+
         // Initialize
         loadStats();
         loadImages();
-        
+
         // Auto-refresh stats every 30 seconds
         setInterval(loadStats, 30000);
     </script>

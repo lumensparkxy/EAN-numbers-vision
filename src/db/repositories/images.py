@@ -5,7 +5,7 @@ Repository for image document operations.
 from datetime import datetime
 from typing import Any
 
-from pymongo import ASCENDING, DESCENDING
+from pymongo import ASCENDING
 from pymongo.collection import Collection
 from pymongo.database import Database
 
@@ -33,10 +33,12 @@ class ImageRepository:
 
     def get_by_source_filename(self, batch_id: str, source_filename: str) -> ImageDoc | None:
         """Get image by batch_id and source_filename (for duplicate detection)."""
-        doc = self.collection.find_one({
-            "batch_id": batch_id,
-            "source_filename": source_filename,
-        })
+        doc = self.collection.find_one(
+            {
+                "batch_id": batch_id,
+                "source_filename": source_filename,
+            }
+        )
         if doc:
             return ImageDoc.from_mongo(doc)
         return None
@@ -73,9 +75,7 @@ class ImageRepository:
     def update(self, image_id: str, updates: dict[str, Any]) -> bool:
         """Update image with arbitrary fields."""
         updates["updated_at"] = datetime.utcnow()
-        result = self.collection.update_one(
-            {"image_id": image_id}, {"$set": updates}
-        )
+        result = self.collection.update_one({"image_id": image_id}, {"$set": updates})
         return result.modified_count > 0
 
     def find_by_status(
@@ -98,7 +98,7 @@ class ImageRepository:
 
     def find_preprocessed(self, limit: int = 100) -> list[ImageDoc]:
         """Find preprocessed images ready for primary decoding.
-        
+
         Excludes images already marked for fallback (already tried by primary).
         """
         query = {
@@ -131,15 +131,15 @@ class ImageRepository:
     ) -> list[ImageDoc]:
         """
         Find failed images eligible for retry.
-        
+
         Only returns images that:
         - Have status FAILED
         - Have fewer than max_attempts Gemini attempts (fallback_attempts)
-        
+
         Args:
             limit: Maximum number of images to return
             max_attempts: Maximum total Gemini attempts allowed
-            
+
         Returns:
             List of ImageDoc eligible for retry
         """
@@ -212,7 +212,7 @@ class ImageRepository:
     @staticmethod
     def create_indexes(collection: Collection[dict[str, Any]]) -> list[str]:
         """Create indexes for the images collection.
-        
+
         Note: Using simple indexes for CosmosDB compatibility.
         CosmosDB doesn't support compound indexes with nested paths.
         """

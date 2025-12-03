@@ -4,7 +4,6 @@ Google Gemini client for AI-powered barcode extraction.
 Uses the new google-genai SDK (https://github.com/googleapis/python-genai)
 """
 
-import base64
 import json
 import re
 from dataclasses import dataclass
@@ -12,13 +11,12 @@ from io import BytesIO
 from typing import Any
 
 from google import genai
-from google.genai import types # type: ignore
-from tenacity import retry, stop_after_attempt, wait_exponential # type: ignore
+from google.genai import types  # type: ignore
+from tenacity import retry, stop_after_attempt, wait_exponential  # type: ignore
 
-from src.config import get_settings
 from src.barcode.validator import is_valid_barcode
+from src.config import get_settings
 from src.models.detection import BarcodeSymbology
-
 
 # Prompt for barcode extraction
 BARCODE_EXTRACTION_PROMPT = """
@@ -76,7 +74,6 @@ If no valid barcodes are found (or all candidates fail checksum / are unclear), 
 
 []
 """
-
 
 
 @dataclass
@@ -239,15 +236,17 @@ class GeminiClient:
             # Validate the code
             is_valid, validated_symbology, error = is_valid_barcode(code)
 
-            results.append(GeminiResult(
-                code=code,
-                symbology_guess=symbology_guess,
-                confidence=confidence,
-                validated_symbology=validated_symbology,
-                is_valid=is_valid,
-                checksum_valid=is_valid,  # Checksum is part of validation
-                raw_response=item,
-            ))
+            results.append(
+                GeminiResult(
+                    code=code,
+                    symbology_guess=symbology_guess,
+                    confidence=confidence,
+                    validated_symbology=validated_symbology,
+                    is_valid=is_valid,
+                    checksum_valid=is_valid,  # Checksum is part of validation
+                    raw_response=item,
+                )
+            )
 
         return results
 
@@ -269,7 +268,7 @@ class GeminiClient:
             pass
 
         # Strategy 2: Find JSON array in text
-        array_match = re.search(r'\[[\s\S]*\]', text)
+        array_match = re.search(r"\[[\s\S]*\]", text)
         if array_match:
             try:
                 return json.loads(array_match.group())
@@ -277,7 +276,7 @@ class GeminiClient:
                 pass
 
         # Strategy 3: Find JSON object in text
-        object_match = re.search(r'\{[\s\S]*\}', text)
+        object_match = re.search(r"\{[\s\S]*\}", text)
         if object_match:
             try:
                 return json.loads(object_match.group())
@@ -285,7 +284,7 @@ class GeminiClient:
                 pass
 
         # Strategy 4: Extract from markdown code block
-        code_block_match = re.search(r'```(?:json)?\s*([\s\S]*?)```', text)
+        code_block_match = re.search(r"```(?:json)?\s*([\s\S]*?)```", text)
         if code_block_match:
             try:
                 return json.loads(code_block_match.group(1))

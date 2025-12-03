@@ -2,12 +2,12 @@
 Database layer for MongoDB operations.
 """
 
-from src.db.client import get_database, get_client, close_client
+from src.db.client import close_client, get_client, get_database
 from src.db.repositories import (
-    ImageRepository,
     DetectionRepository,
-    ProductRepository,
+    ImageRepository,
     JobRepository,
+    ProductRepository,
 )
 
 __all__ = [

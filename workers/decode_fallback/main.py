@@ -5,20 +5,17 @@ Processes images that failed primary decoding and uses AI to extract barcodes.
 """
 
 import time
-from io import BytesIO
 
 import structlog
 
-from src.config import get_settings
-from src.db import get_database, ImageRepository, DetectionRepository, ProductRepository
+from src.db import DetectionRepository, ImageRepository, ProductRepository, get_database
+from src.llm import GeminiClient
 from src.models import (
-    ImageStatus,
     DetectionDoc,
     DetectionSource,
+    ImageStatus,
 )
-from src.llm import GeminiClient
-from src.storage import get_blob_client, BlobPaths
-
+from src.storage import BlobPaths, get_blob_client
 
 logger = structlog.get_logger(__name__)
 
@@ -30,7 +27,6 @@ def process_fallback_images(batch_size: int = 10) -> int:
     Returns:
         Number of images processed
     """
-    settings = get_settings()
     db = get_database()
     image_repo = ImageRepository(db)
     detection_repo = DetectionRepository(db)
@@ -239,7 +235,7 @@ def process_fallback_images(batch_size: int = 10) -> int:
                 stage="decode_fallback",
                 message=str(e),
             )
-            
+
             # Move blob to failed folder
             try:
                 dest_path = BlobPaths.failed(
@@ -247,7 +243,7 @@ def process_fallback_images(batch_size: int = 10) -> int:
                     image_doc.image_id,
                 )
                 blob_client.move_blob(image_path, dest_path)
-                
+
                 image_repo.update(
                     image_doc.image_id,
                     {
@@ -275,7 +271,9 @@ def main():
     parser.add_argument("--batch-size", type=int, default=5, help="Number of images per batch")
     parser.add_argument("--poll-interval", type=int, default=10, help="Seconds between polls")
     parser.add_argument("--once", action="store_true", help="Run once and exit")
-    parser.add_argument("--daemon", action="store_true", help="Keep running even when no work (daemon mode)")
+    parser.add_argument(
+        "--daemon", action="store_true", help="Keep running even when no work (daemon mode)"
+    )
     args = parser.parse_args()
 
     logger.info("Starting fallback decode worker", batch_size=args.batch_size)

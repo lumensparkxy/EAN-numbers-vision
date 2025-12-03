@@ -7,7 +7,7 @@ from io import BytesIO
 from typing import BinaryIO
 
 from azure.identity import DefaultAzureCredential
-from azure.storage.blob import BlobServiceClient, ContainerClient, BlobClient
+from azure.storage.blob import BlobServiceClient
 
 from src.config import get_settings
 
@@ -151,6 +151,7 @@ class BlobStorageClient:
         props = dest_blob.get_blob_properties()
         while props.copy.status == "pending":
             import time
+
             time.sleep(0.5)
             props = dest_blob.get_blob_properties()
 
@@ -236,7 +237,8 @@ class BlobStorageClient:
             SAS URL for blob
         """
         from datetime import datetime, timedelta
-        from azure.storage.blob import generate_blob_sas, BlobSasPermissions
+
+        from azure.storage.blob import BlobSasPermissions, generate_blob_sas
 
         blob_client = self.container_client.get_blob_client(path)
 

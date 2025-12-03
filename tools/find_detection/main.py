@@ -8,7 +8,7 @@ Usage:
 import argparse
 import json
 
-from src.db import get_database, DetectionRepository
+from src.db import DetectionRepository, get_database
 
 
 def find_by_filename(filename: str, output_format: str = "table") -> None:
@@ -25,15 +25,17 @@ def find_by_filename(filename: str, output_format: str = "table") -> None:
     if output_format == "json":
         results = []
         for d in detections:
-            results.append({
-                "code": d.code,
-                "symbology": d.symbology.value if d.symbology else None,
-                "source": d.source.value if d.source else None,
-                "checksum_valid": d.checksum_valid,
-                "product_found": d.product_found,
-                "image_id": d.image_id,
-                "batch_id": d.batch_id,
-            })
+            results.append(
+                {
+                    "code": d.code,
+                    "symbology": d.symbology.value if d.symbology else None,
+                    "source": d.source.value if d.source else None,
+                    "checksum_valid": d.checksum_valid,
+                    "product_found": d.product_found,
+                    "image_id": d.image_id,
+                    "batch_id": d.batch_id,
+                }
+            )
         print(json.dumps(results, indent=2))
     else:
         # Table format
@@ -56,19 +58,13 @@ def find_by_filename(filename: str, output_format: str = "table") -> None:
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(
-        description="Find detections by source filename"
-    )
-    parser.add_argument(
-        "--filename", "-f",
-        required=True,
-        help="Source filename to search for"
-    )
+    parser = argparse.ArgumentParser(description="Find detections by source filename")
+    parser.add_argument("--filename", "-f", required=True, help="Source filename to search for")
     parser.add_argument(
         "--format",
         choices=["table", "json"],
         default="table",
-        help="Output format (default: table)"
+        help="Output format (default: table)",
     )
 
     args = parser.parse_args()

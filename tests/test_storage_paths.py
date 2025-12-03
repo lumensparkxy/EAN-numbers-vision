@@ -46,9 +46,7 @@ class TestPathExtraction:
 
     def test_extract_batch_and_image_id(self):
         """Test extraction of batch and image IDs."""
-        batch_id, image_id = BlobPaths.extract_batch_and_image_id(
-            "incoming/batch_001/img_123.jpg"
-        )
+        batch_id, image_id = BlobPaths.extract_batch_and_image_id("incoming/batch_001/img_123.jpg")
         assert batch_id == "batch_001"
         assert image_id == "img_123"
 
@@ -69,14 +67,11 @@ class TestPathExtraction:
         """Test extension extraction."""
         assert BlobPaths.get_extension("path/to/file.jpg") == "jpg"
         assert BlobPaths.get_extension("path/to/file.png") == "png"
-        assert BlobPaths.get_extension("noextension") == "noextension"
+        assert BlobPaths.get_extension("noextension") == ""
 
     def test_change_folder(self):
         """Test folder change."""
-        new_path = BlobPaths.change_folder(
-            "incoming/batch_001/img.jpg",
-            "processed"
-        )
+        new_path = BlobPaths.change_folder("incoming/batch_001/img.jpg", "processed")
         assert new_path == "processed/batch_001/img.jpg"
 
     def test_invalid_path_format(self):

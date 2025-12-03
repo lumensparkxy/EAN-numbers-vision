@@ -29,7 +29,9 @@ class ImageStatus(str, Enum):
 class PreprocessingInfo(BaseModel):
     """Information about image preprocessing."""
 
-    normalized_path: str | None = Field(None, description="Path to normalized image in blob storage")
+    normalized_path: str | None = Field(
+        None, description="Path to normalized image in blob storage"
+    )
     original_width: int | None = None
     original_height: int | None = None
     processed_width: int | None = None
@@ -131,7 +133,9 @@ class ImageDoc(MongoBaseModel):
         error: str | None = None,
     ) -> None:
         """Record a decoding attempt."""
-        attempts = self.processing.fallback_attempts if is_fallback else self.processing.primary_attempts
+        attempts = (
+            self.processing.fallback_attempts if is_fallback else self.processing.primary_attempts
+        )
         attempt = DecoderAttempt(
             decoder=decoder,
             attempt_number=len(attempts) + 1,

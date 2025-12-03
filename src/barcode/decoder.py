@@ -2,20 +2,19 @@
 Barcode decoder using pyzbar (ZBar) library.
 """
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from io import BytesIO
-from typing import Sequence
 
-import cv2
 import numpy as np
 from PIL import Image
 from pyzbar import pyzbar
-from pyzbar.pyzbar import ZBarSymbol, Decoded
+from pyzbar.pyzbar import Decoded, ZBarSymbol
 
 from src.barcode.validator import (
+    detect_symbology,
     is_valid_barcode,
     normalize_barcode,
-    detect_symbology,
 )
 from src.models.detection import BarcodeSymbology
 
@@ -166,17 +165,19 @@ class BarcodeDecoder:
 
         except Exception as e:
             # Return error result
-            results.append(BarcodeResult(
-                code="",
-                symbology=BarcodeSymbology.UNKNOWN,
-                normalized_code="",
-                is_valid=False,
-                checksum_valid=False,
-                length_valid=False,
-                numeric_only=False,
-                rotation=rotation,
-                error=str(e),
-            ))
+            results.append(
+                BarcodeResult(
+                    code="",
+                    symbology=BarcodeSymbology.UNKNOWN,
+                    normalized_code="",
+                    is_valid=False,
+                    checksum_valid=False,
+                    length_valid=False,
+                    numeric_only=False,
+                    rotation=rotation,
+                    error=str(e),
+                )
+            )
 
         return results
 

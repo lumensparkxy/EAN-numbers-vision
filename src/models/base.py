@@ -2,7 +2,7 @@
 Common base models and utilities.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Annotated, Any
 
 from bson import ObjectId
@@ -77,4 +77,4 @@ class MongoBaseModel(BaseModel):
 
 def utc_now() -> datetime:
     """Get current UTC datetime."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)

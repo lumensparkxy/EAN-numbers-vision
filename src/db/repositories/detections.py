@@ -9,7 +9,7 @@ from pymongo import ASCENDING
 from pymongo.collection import Collection
 from pymongo.database import Database
 
-from src.models import DetectionDoc, DetectionSource
+from src.models import DetectionDoc
 
 
 class DetectionRepository:
@@ -62,13 +62,15 @@ class DetectionRepository:
 
     def find_valid_by_image(self, image_id: str) -> list[DetectionDoc]:
         """Find valid detections for an image."""
-        cursor = self.collection.find({
-            "image_id": image_id,
-            "checksum_valid": True,
-            "length_valid": True,
-            "numeric_only": True,
-            "rejected": False,
-        })
+        cursor = self.collection.find(
+            {
+                "image_id": image_id,
+                "checksum_valid": True,
+                "length_valid": True,
+                "numeric_only": True,
+                "rejected": False,
+            }
+        )
         return [DetectionDoc.from_mongo(doc) for doc in cursor]
 
     def find_ambiguous(self, limit: int = 100) -> list[DetectionDoc]:
@@ -168,12 +170,8 @@ class DetectionRepository:
                 "$group": {
                     "_id": None,
                     "total": {"$sum": 1},
-                    "checksum_valid": {
-                        "$sum": {"$cond": ["$checksum_valid", 1, 0]}
-                    },
-                    "product_found": {
-                        "$sum": {"$cond": ["$product_found", 1, 0]}
-                    },
+                    "checksum_valid": {"$sum": {"$cond": ["$checksum_valid", 1, 0]}},
+                    "product_found": {"$sum": {"$cond": ["$product_found", 1, 0]}},
                     "ambiguous": {"$sum": {"$cond": ["$ambiguous", 1, 0]}},
                 }
             },
@@ -187,7 +185,7 @@ class DetectionRepository:
     @staticmethod
     def create_indexes(collection: Collection[dict[str, Any]]) -> list[str]:
         """Create indexes for the detections collection.
-        
+
         Note: Using simple indexes for CosmosDB compatibility.
         """
         indexes = [

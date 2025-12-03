@@ -2,17 +2,15 @@
 Tests for barcode validation functions.
 """
 
-import pytest
-
 from src.barcode.validator import (
-    calculate_ean13_checksum,
-    validate_ean13_checksum,
     calculate_ean8_checksum,
-    validate_ean8_checksum,
-    validate_upc_checksum,
+    calculate_ean13_checksum,
     detect_symbology,
     is_valid_barcode,
     normalize_barcode,
+    validate_ean8_checksum,
+    validate_ean13_checksum,
+    validate_upc_checksum,
 )
 from src.models.detection import BarcodeSymbology
 
@@ -49,8 +47,8 @@ class TestEAN13Checksum:
             "4006381333932",  # Wrong checksum
             "5901234123450",  # Wrong checksum
             "1234567890123",  # Invalid structure
-            "123456789012",   # Too short
-            "12345678901234", # Too long
+            "123456789012",  # Too short
+            "12345678901234",  # Too long
             "400638133393A",  # Non-numeric
         ]
         for code in invalid_codes:
@@ -82,8 +80,8 @@ class TestEAN8Checksum:
         """Test validation of invalid EAN-8 codes."""
         invalid_codes = [
             "96385075",  # Wrong checksum
-            "1234567",   # Too short
-            "123456789", # Too long
+            "1234567",  # Too short
+            "123456789",  # Too long
             "9638507A",  # Non-numeric
         ]
         for code in invalid_codes:
@@ -108,8 +106,8 @@ class TestUPCChecksum:
 
     def test_validate_upc_invalid_length(self):
         """Test that non-12 digit codes are rejected."""
-        assert not validate_upc_checksum("1234567890")   # Too short
-        assert not validate_upc_checksum("1234567890123") # Too long
+        assert not validate_upc_checksum("1234567890")  # Too short
+        assert not validate_upc_checksum("1234567890123")  # Too long
 
 
 class TestSymbologyDetection:

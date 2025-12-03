@@ -44,9 +44,7 @@ class DetectionDoc(MongoBaseModel):
     # Barcode data
     code: str = Field(..., description="The detected barcode value")
     symbology: BarcodeSymbology = Field(default=BarcodeSymbology.UNKNOWN)
-    normalized_code: str | None = Field(
-        None, description="Normalized code (e.g., UPC-A to EAN-13)"
-    )
+    normalized_code: str | None = Field(None, description="Normalized code (e.g., UPC-A to EAN-13)")
 
     # Detection metadata
     source: DetectionSource = Field(..., description="How the code was detected")
@@ -70,12 +68,8 @@ class DetectionDoc(MongoBaseModel):
     product_id: str | None = Field(None, description="Reference to product if found")
 
     # Gemini-specific (for fallback)
-    gemini_confidence: float | None = Field(
-        None, description="Gemini's reported confidence"
-    )
-    gemini_symbology_guess: str | None = Field(
-        None, description="Gemini's guess at symbology"
-    )
+    gemini_confidence: float | None = Field(None, description="Gemini's reported confidence")
+    gemini_symbology_guess: str | None = Field(None, description="Gemini's guess at symbology")
 
     # Timestamps
     detected_at: datetime = Field(default_factory=utc_now)

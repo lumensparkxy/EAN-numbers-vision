@@ -2,18 +2,15 @@
 Tests for MongoDB models.
 """
 
-import pytest
-from datetime import datetime, timezone
-
 from src.models import (
-    ImageDoc,
-    ImageStatus,
     DetectionDoc,
     DetectionSource,
-    ProductDoc,
+    ImageDoc,
+    ImageStatus,
     JobDoc,
     JobStatus,
     JobType,
+    ProductDoc,
 )
 from src.models.detection import BarcodeSymbology
 

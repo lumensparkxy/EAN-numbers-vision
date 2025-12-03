@@ -38,7 +38,8 @@ def configure_logging() -> None:
     if settings.log_format == "json":
         # JSON format for production
         structlog.configure(
-            processors=shared_processors + [
+            processors=shared_processors
+            + [
                 structlog.processors.dict_tracebacks,
                 structlog.processors.JSONRenderer(),
             ],
@@ -52,7 +53,8 @@ def configure_logging() -> None:
     else:
         # Pretty console format for development
         structlog.configure(
-            processors=shared_processors + [
+            processors=shared_processors
+            + [
                 structlog.dev.ConsoleRenderer(colors=True),
             ],
             wrapper_class=structlog.make_filtering_bound_logger(

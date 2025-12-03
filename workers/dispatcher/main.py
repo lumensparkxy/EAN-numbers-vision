@@ -12,10 +12,8 @@ from datetime import datetime
 
 import structlog
 
-from src.config import get_settings
-from src.db import get_database, ImageRepository, JobRepository
+from src.db import ImageRepository, JobRepository, get_database
 from src.models import ImageStatus, JobType
-
 
 logger = structlog.get_logger(__name__)
 
@@ -74,10 +72,7 @@ class JobDispatcher:
         )
 
         # Filter out images that already need fallback
-        eligible = [
-            img for img in preprocessed
-            if not img.processing.needs_fallback
-        ]
+        eligible = [img for img in preprocessed if not img.processing.needs_fallback]
 
         created = 0
         for image in eligible:
@@ -137,7 +132,7 @@ class JobDispatcher:
     def get_stats(self) -> dict[str, any]:
         """Get current pipeline statistics."""
         image_stats = self.image_repo.get_stats()
-        
+
         # Get counts for pending work (what workers will process)
         pending_work = {
             "pending_preprocess": len(self.image_repo.find_pending(limit=10000)),
@@ -167,6 +162,7 @@ def main():
 
     if args.stats:
         import json
+
         stats = dispatcher.get_stats()
         print(json.dumps(stats, indent=2, default=str))
         return

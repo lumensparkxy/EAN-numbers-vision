@@ -6,11 +6,10 @@ import warnings
 from functools import lru_cache
 from typing import Any
 
-from pymongo import MongoClient # type: ignore
-from pymongo.database import Database # type: ignore
+from pymongo import MongoClient  # type: ignore
+from pymongo.database import Database  # type: ignore
 
 from src.config import get_settings
-
 
 _client: MongoClient | None = None
 

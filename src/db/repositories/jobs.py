@@ -147,7 +147,7 @@ class JobRepository:
 
         if job.attempt_count < max_attempts:
             # Retry: reset to pending with backoff
-            backoff_seconds = 60 * (2 ** job.attempt_count)  # Exponential backoff
+            backoff_seconds = 60 * (2**job.attempt_count)  # Exponential backoff
             scheduled_for = now + timedelta(seconds=backoff_seconds)
 
             update = {
@@ -240,24 +240,32 @@ class JobRepository:
     def cleanup_old_completed(self, days: int = 7) -> int:
         """Delete completed/failed jobs older than N days."""
         cutoff = datetime.utcnow() - timedelta(days=days)
-        result = self.collection.delete_many({
-            "status": {"$in": [JobStatus.COMPLETED.value, JobStatus.FAILED.value]},
-            "completed_at": {"$lt": cutoff},
-        })
+        result = self.collection.delete_many(
+            {
+                "status": {"$in": [JobStatus.COMPLETED.value, JobStatus.FAILED.value]},
+                "completed_at": {"$lt": cutoff},
+            }
+        )
         return result.deleted_count
 
     def exists_for_image(self, image_id: str, job_type: JobType) -> bool:
         """Check if a job already exists for an image."""
-        return self.collection.count_documents({
-            "image_id": image_id,
-            "job_type": job_type.value,
-            "status": {"$in": [JobStatus.PENDING.value, JobStatus.IN_PROGRESS.value]},
-        }, limit=1) > 0
+        return (
+            self.collection.count_documents(
+                {
+                    "image_id": image_id,
+                    "job_type": job_type.value,
+                    "status": {"$in": [JobStatus.PENDING.value, JobStatus.IN_PROGRESS.value]},
+                },
+                limit=1,
+            )
+            > 0
+        )
 
     @staticmethod
     def create_indexes(collection: Collection[dict[str, Any]]) -> list[str]:
         """Create indexes for the jobs collection.
-        
+
         Note: Using simple indexes for CosmosDB compatibility.
         """
         indexes = [

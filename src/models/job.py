@@ -67,9 +67,7 @@ class JobDoc(MongoBaseModel):
     scheduled_for: datetime = Field(
         default_factory=utc_now, description="When job should be processed"
     )
-    locked_until: datetime | None = Field(
-        None, description="Lock expiry for in-progress jobs"
-    )
+    locked_until: datetime | None = Field(None, description="Lock expiry for in-progress jobs")
 
     # Timestamps
     created_at: datetime = Field(default_factory=utc_now)

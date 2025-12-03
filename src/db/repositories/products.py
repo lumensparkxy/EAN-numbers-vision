@@ -48,14 +48,16 @@ class ProductRepository:
 
     def get_by_any_code(self, code: str) -> ProductDoc | None:
         """Get product by any barcode (EAN, UPC, etc.)."""
-        doc = self.collection.find_one({
-            "$or": [
-                {"ean": code},
-                {"upc": code},
-                {"ean8": code},
-                {"additional_codes": code},
-            ]
-        })
+        doc = self.collection.find_one(
+            {
+                "$or": [
+                    {"ean": code},
+                    {"upc": code},
+                    {"ean8": code},
+                    {"additional_codes": code},
+                ]
+            }
+        )
         if doc:
             return ProductDoc.from_mongo(doc)
         return None
@@ -137,7 +139,7 @@ class ProductRepository:
     @staticmethod
     def create_indexes(collection: Collection[dict[str, Any]]) -> list[str]:
         """Create indexes for the products collection.
-        
+
         Note: Using simple indexes for CosmosDB compatibility.
         Unique constraint on EAN is handled at application level.
         """

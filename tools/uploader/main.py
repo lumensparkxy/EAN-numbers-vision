@@ -9,19 +9,15 @@ Usage:
     poetry run upload --batch-id batch_001 --source ./images/ --prefix STORE01_
 """
 
-import os
 import uuid
 from pathlib import Path
-from typing import Optional
 
 import click
 import structlog
 
-from src.config import get_settings
-from src.db import get_database, ImageRepository
+from src.db import ImageRepository, get_database
 from src.models import ImageDoc, ImageStatus
-from src.storage import get_blob_client, BlobPaths
-
+from src.storage import BlobPaths, get_blob_client
 
 logger = structlog.get_logger(__name__)
 
@@ -58,7 +54,7 @@ def upload_image(
     blob_client,
     image_repo: ImageRepository,
     prefix: str = "",
-    external_id: Optional[str] = None,
+    external_id: str | None = None,
 ) -> bool:
     """
     Upload a single image.
@@ -156,7 +152,7 @@ def main(
     skip_duplicates: bool,
 ):
     """Upload product images for barcode extraction."""
-    click.echo(f"EAN Extraction - Image Upload Tool")
+    click.echo("EAN Extraction - Image Upload Tool")
     click.echo(f"Batch ID: {batch_id}")
     click.echo(f"Source: {source}")
     click.echo("")
@@ -229,7 +225,7 @@ def main(
                 fail_count += 1
 
     click.echo("")
-    click.echo(f"Upload complete!")
+    click.echo("Upload complete!")
     click.echo(f"  Successful: {success_count}")
     click.echo(f"  Skipped (duplicates): {skipped_count}")
     click.echo(f"  Failed: {fail_count}")

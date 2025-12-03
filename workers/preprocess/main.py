@@ -10,19 +10,15 @@ Normalizes images for barcode detection:
 
 import time
 from dataclasses import dataclass
-from io import BytesIO
 
 import cv2
 import numpy as np
-from PIL import Image
-
 import structlog
 
 from src.config import get_settings
-from src.db import get_database, ImageRepository
+from src.db import ImageRepository, get_database
 from src.models import ImageStatus, PreprocessingInfo
-from src.storage import get_blob_client, BlobPaths
-
+from src.storage import BlobPaths, get_blob_client
 
 logger = structlog.get_logger(__name__)
 
@@ -134,7 +130,6 @@ def process_pending_images(batch_size: int = 10) -> int:
     Returns:
         Number of images processed
     """
-    settings = get_settings()
     db = get_database()
     image_repo = ImageRepository(db)
     blob_client = get_blob_client()
@@ -181,6 +176,7 @@ def process_pending_images(batch_size: int = 10) -> int:
             # Update preprocessing info
             prep_info.normalized_path = dest_path
             from src.models.base import utc_now
+
             prep_info.completed_at = utc_now()
 
             # Move incoming to archived (keeps original for debugging/reprocessing)
@@ -246,7 +242,9 @@ def main():
     parser.add_argument("--batch-size", type=int, default=10, help="Number of images per batch")
     parser.add_argument("--poll-interval", type=int, default=5, help="Seconds between polls")
     parser.add_argument("--once", action="store_true", help="Run once and exit")
-    parser.add_argument("--daemon", action="store_true", help="Keep running even when no work (daemon mode)")
+    parser.add_argument(
+        "--daemon", action="store_true", help="Keep running even when no work (daemon mode)"
+    )
     args = parser.parse_args()
 
     logger.info("Starting preprocessing worker", batch_size=args.batch_size)
