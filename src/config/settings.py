@@ -13,7 +13,8 @@ class Settings(BaseSettings):
     """Application configuration loaded from environment variables."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        # Prefer local overrides while keeping .env as the default source
+        env_file=(".env.local", ".env"),
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
