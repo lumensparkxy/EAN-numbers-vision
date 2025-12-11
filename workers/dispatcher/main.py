@@ -43,6 +43,12 @@ class JobDispatcher:
             limit=self.batch_size,
         )
 
+        logger.info(
+            "Found pending images for preprocess",
+            count=len(pending),
+            batch_size=self.batch_size,
+        )
+
         created = 0
         for image in pending:
             # Check if job already exists
@@ -53,6 +59,17 @@ class JobDispatcher:
                     batch_id=image.batch_id,
                 )
                 created += 1
+                logger.debug(
+                    "Enqueued preprocess job",
+                    image_id=image.image_id,
+                    batch_id=image.batch_id,
+                )
+            else:
+                logger.debug(
+                    "Preprocess job already exists, skipping",
+                    image_id=image.image_id,
+                    batch_id=image.batch_id,
+                )
 
         if created > 0:
             logger.info("Created preprocess jobs", count=created)
@@ -74,6 +91,13 @@ class JobDispatcher:
         # Filter out images that already need fallback
         eligible = [img for img in preprocessed if not img.processing.needs_fallback]
 
+        logger.info(
+            "Found preprocessed images",
+            total=len(preprocessed),
+            eligible=len(eligible),
+            batch_size=self.batch_size,
+        )
+
         created = 0
         for image in eligible:
             if not self.job_repo.exists_for_image(image.image_id, JobType.DECODE_PRIMARY):
@@ -83,6 +107,17 @@ class JobDispatcher:
                     batch_id=image.batch_id,
                 )
                 created += 1
+                logger.debug(
+                    "Enqueued primary decode job",
+                    image_id=image.image_id,
+                    batch_id=image.batch_id,
+                )
+            else:
+                logger.debug(
+                    "Primary decode job already exists, skipping",
+                    image_id=image.image_id,
+                    batch_id=image.batch_id,
+                )
 
         if created > 0:
             logger.info("Created primary decode jobs", count=created)
@@ -100,6 +135,12 @@ class JobDispatcher:
             limit=self.batch_size,
         )
 
+        logger.info(
+            "Found images needing fallback",
+            count=len(fallback_images),
+            batch_size=self.batch_size,
+        )
+
         created = 0
         for image in fallback_images:
             if not self.job_repo.exists_for_image(image.image_id, JobType.DECODE_FALLBACK):
@@ -109,6 +150,17 @@ class JobDispatcher:
                     batch_id=image.batch_id,
                 )
                 created += 1
+                logger.debug(
+                    "Enqueued fallback decode job",
+                    image_id=image.image_id,
+                    batch_id=image.batch_id,
+                )
+            else:
+                logger.debug(
+                    "Fallback decode job already exists, skipping",
+                    image_id=image.image_id,
+                    batch_id=image.batch_id,
+                )
 
         if created > 0:
             logger.info("Created fallback decode jobs", count=created)

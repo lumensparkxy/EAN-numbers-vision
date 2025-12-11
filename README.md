@@ -139,14 +139,16 @@ ENVIRONMENT=dev
 # Upload images
 poetry run upload --batch-id batch_001 --source ./images/
 
-# Run dispatcher (starts job processing)
-poetry run dispatcher
+# Run workers (these do the actual processing)
+poetry run python -m workers.preprocess.main          # processes PENDING images
+poetry run python -m workers.decode_primary.main      # processes PREPROCESSED images
+poetry run python -m workers.decode_fallback.main     # processes fallback-marked images
+poetry run python -m workers.decode_failed.main       # retries Gemini on previously failed images
 
-# Run individual workers
-poetry run python -m workers.preprocess.main
-poetry run python -m workers.decode_primary.main
-poetry run python -m workers.decode_fallback.main
-poetry run python -m workers.decode_failed.main  # retries Gemini on previously failed images
+# (Optional) Dispatcher: enqueues jobs into the jobs collection but does not process images.
+# Current workers operate directly from image statuses, so dispatcher is not required.
+# Useful if you later wire workers to consume from the jobs queue instead of polling image statuses.
+# poetry run dispatcher
 
 # Generate reports (CSV or Markdown) for a batch
 poetry run python -m tools.reports.main --batch-id <batch_id> --format csv
@@ -168,13 +170,12 @@ poetry run uvicorn tools.manual_review_ui.app:app --reload
 3) Configure env: copy `.env.example` to `.env.local` and fill `MONGODB_URI`, `MONGODB_DATABASE`, `AZURE_STORAGE_*`, `GEMINI_API_KEY`.
 4) (First run) create indexes: `poetry run python -m src.db.init_indexes`
 5) Upload images: `poetry run upload --batch-id batch_001 --source ./images/`
-6) Start processing (new shells or tmux panes):
+6) Start processing (new shells or tmux panes). Workers process directly from image statuses:
        ```bash
-       poetry run dispatcher
-       poetry run python -m workers.preprocess.main
-       poetry run python -m workers.decode_primary.main
-       poetry run python -m workers.decode_fallback.main
-       poetry run python -m workers.decode_failed.main
+       poetry run python -m workers.preprocess.main --daemon
+       poetry run python -m workers.decode_primary.main --daemon
+       poetry run python -m workers.decode_fallback.main --daemon
+       poetry run python -m workers.decode_failed.main --daemon
        ```
 7) Review & export:
        - Manual review UI: `poetry run uvicorn tools.manual_review_ui.app:app --reload`
