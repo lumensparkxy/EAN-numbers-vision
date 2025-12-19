@@ -233,7 +233,7 @@ def main(
     if success_count > 0:
         click.echo(f"\nImages are now queued for processing under batch '{batch_id}'")
         click.echo("Run the workers to start processing:")
-        click.echo("  poetry run python -m workers.dispatcher.main")
+        click.echo("  poetry run python -m workers.preprocess.main")
 
 
 if __name__ == "__main__":
